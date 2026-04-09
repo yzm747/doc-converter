@@ -1,0 +1,6 @@
+api/
+backend/
+__pycache__/
+*.pyc
+.git
+.workbuddy/

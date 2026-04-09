@@ -530,7 +530,6 @@ async def word_to_pdf(file: UploadFile = File(...)):
                 c.drawString(margin, y_position, current_line.strip())
                 y_position -= line_height
         c.save()
-        c.save()
         try:
             docx_path.unlink()
         except Exception as e:

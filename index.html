@@ -813,7 +813,8 @@
         let totalConversions = parseInt(localStorage.getItem('totalConversions') || '0');
 
         // ============ 初始化 ============
-        document.getElementById('totalConversions').textContent = totalConversions;
+        var totalConversionsEl = document.getElementById('totalConversions');
+        if (totalConversionsEl) totalConversionsEl.textContent = totalConversions;
         loadHistory();
 
         // 检查本地登录状态
@@ -852,36 +853,49 @@
         // 更新界面
         function updateUI() {
             if (currentUser) {
-                document.getElementById('notLogged').style.display = 'none';
-                document.getElementById('logged').style.display = 'flex';
-                document.getElementById('userAccount').textContent = currentUser.account || currentUser.phone || currentUser.email;
-
+                const notLogged = document.getElementById('notLogged');
+                const logged = document.getElementById('logged');
+                const userAccount = document.getElementById('userAccount');
                 const vipBadge = document.getElementById('vipBadge');
-                if (currentUser.is_vip) {
-                    vipBadge.style.display = 'inline';
-                } else {
-                    vipBadge.style.display = 'none';
-                }
-
-                // 使用次数
                 const usageBar = document.getElementById('usageBar');
-                usageBar.style.display = 'flex';
-                if (currentUser.is_vip) {
-                    document.getElementById('usageCount').textContent = '∞ VIP';
-                    usageBar.querySelector('span:first-child').innerHTML = '👑 VIP会员 · <span class="count">无限次转换</span>';
-                    usageBar.querySelector('.upgrade-link').textContent = '到期：' + currentUser.vip_expire;
-                } else {
-                    const count = currentUser.daily_count || 0;
-                    document.getElementById('usageCount').textContent = count + '/3';
-                    usageBar.querySelector('span:first-child').innerHTML = '今日已用 <span class="count">' + count + '/3</span> 次免费转换';
-                    usageBar.querySelector('.upgrade-link').textContent = '升级VIP →';
+                const usageCount = document.getElementById('usageCount');
+                const userCount = document.getElementById('userCount');
+                
+                if (notLogged) notLogged.style.display = 'none';
+                if (logged) logged.style.display = 'flex';
+                if (userAccount) userAccount.textContent = currentUser.account || currentUser.phone || currentUser.email;
+
+                if (vipBadge) {
+                    if (currentUser.is_vip) { vipBadge.style.display = 'inline'; }
+                    else { vipBadge.style.display = 'none'; }
                 }
 
-                document.getElementById('userCount').textContent = currentUser.is_vip ? '' : (currentUser.daily_count || 0) + '/3';
+                if (usageBar) {
+                    usageBar.style.display = 'flex';
+                    if (currentUser.is_vip) {
+                        if (usageCount) usageCount.textContent = '∞ VIP';
+                        var span1 = usageBar.querySelector('span:first-child');
+                        if (span1) span1.innerHTML = '👑 VIP会员 · <span class="count">无限次转换</span>';
+                        var uplink = usageBar.querySelector('.upgrade-link');
+                        if (uplink) uplink.textContent = '到期：' + currentUser.vip_expire;
+                    } else {
+                        const count = currentUser.daily_count || 0;
+                        if (usageCount) usageCount.textContent = count + '/3';
+                        var span1 = usageBar.querySelector('span:first-child');
+                        if (span1) span1.innerHTML = '今日已用 <span class="count">' + count + '/3</span> 次免费转换';
+                        var uplink = usageBar.querySelector('.upgrade-link');
+                        if (uplink) uplink.textContent = '升级VIP →';
+                    }
+                }
+
+                if (userCount) userCount.textContent = currentUser.is_vip ? '' : (currentUser.daily_count || 0) + '/3';
             } else {
-                document.getElementById('notLogged').style.display = 'block';
-                document.getElementById('logged').style.display = 'none';
-                document.getElementById('usageBar').style.display = 'none';
+                const notLogged = document.getElementById('notLogged');
+                const logged = document.getElementById('logged');
+                const usageBar = document.getElementById('usageBar');
+                if (notLogged) notLogged.style.display = 'block';
+                if (logged) logged.style.display = 'none';
+                if (usageBar) usageBar.style.display = 'none';
             }
         }
 
@@ -1213,12 +1227,12 @@
         }
 
         function updateProgress(text, percent) {
-            progressFill.style.width = percent + '%';
-            progressText.textContent = text;
+            if (progressFill) progressFill.style.width = percent + '%';
+            if (progressText) progressText.textContent = text;
         }
-        function showError(message) { errorMessage.textContent = message; errorArea.classList.add('show'); progressArea.classList.remove('show'); }
-        function hideError() { errorArea.classList.remove('show'); }
-        function hideResult() { resultArea.classList.remove('show'); }
+        function showError(message) { if (errorMessage) errorMessage.textContent = message; if (errorArea) errorArea.classList.add('show'); if (progressArea) progressArea.classList.remove('show'); }
+        function hideError() { if (errorArea) errorArea.classList.remove('show'); }
+        function hideResult() { if (resultArea) resultArea.classList.remove('show'); }
 
         // ============ 下载 ============
         downloadBtn.addEventListener('click', () => {

@@ -1,0 +1,17 @@
+{
+  "name": "doc-converter",
+  "version": "1.0.0",
+  "description": "简易文档转换器 - PDF/Word/图片互转",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "pdf",
+    "word",
+    "converter",
+    "document"
+  ],
+  "author": "WorkBuddy AI",
+  "license": "MIT"
+}

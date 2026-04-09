@@ -205,6 +205,13 @@
             position: relative;
         }
         .vip-plan:hover { border-color: #667eea; transform: translateY(-3px); }
+        .vip-plan.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff, #f5f0ff);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+            transform: translateY(-3px);
+        }
+        .vip-plan.selected .plan-price { color: #5568d3; }
         .vip-plan.hot {
             border-color: #f5af19;
             background: linear-gradient(135deg, #fff9f0, #fff5e6);
@@ -751,22 +758,28 @@
             <div class="pay-guide">
                 <h4>💡 开通方式</h4>
                 <div class="pay-steps">
-                    <div><span class="step-num">1</span>选择套餐，扫码支付对应金额</div>
+                    <div><span class="step-num">1</span>选择上方的套餐，扫码支付对应金额</div>
                     <div><span class="step-num">2</span>付款后将截图发给客服</div>
                     <div><span class="step-num">3</span>附上你的登录账号，管理员确认后即刻开通</div>
                 </div>
             </div>
-            <div style="display:flex;justify-content:center;gap:30px;margin-top:20px;flex-wrap:wrap;">
-                <div style="text-align:center;">
-                    <p style="font-size:14px;font-weight:600;color:#07c160;margin-bottom:8px;">💚 微信支付</p>
-                    <img src="assets/wechat_pay.jpg" alt="微信收款码" style="width:160px;height:160px;border-radius:8px;border:2px solid #e8e8e8;">
+            <!-- 动态收款码区域：选择套餐后才显示 -->
+            <div id="qrCodeArea" style="display:none;margin-top:20px;">
+                <div style="text-align:center;margin-bottom:12px;">
+                    <span style="background:linear-gradient(135deg,#f5af19,#f12711);color:white;padding:4px 14px;border-radius:12px;font-size:13px;font-weight:600;" id="qrPriceTag"></span>
                 </div>
-                <div style="text-align:center;">
-                    <p style="font-size:14px;font-weight:600;color:#1677ff;margin-bottom:8px;">💙 支付宝</p>
-                    <img src="assets/alipay.jpg" alt="支付宝收款码" style="width:160px;height:160px;border-radius:8px;border:2px solid #e8e8e8;">
+                <div style="display:flex;justify-content:center;">
+                    <div style="text-align:center;">
+                        <p style="font-size:14px;font-weight:600;color:#07c160;margin-bottom:8px;">💚 微信支付</p>
+                        <img id="wechatQrImg" alt="微信收款码" style="width:180px;height:180px;border-radius:8px;border:2px solid #e8e8e8;">
+                    </div>
                 </div>
+                <p style="text-align:center;font-size:12px;color:#999;margin-top:12px;">扫码即可支付，金额已自动设置 · 付款后截图发给客服并附上登录账号</p>
             </div>
-            <p style="text-align:center;font-size:12px;color:#999;margin-top:12px;">付款时请备注你的登录账号，方便快速开通</p>
+            <!-- 未选套餐时的提示 -->
+            <div id="qrPlaceholder" style="text-align:center;padding:20px;color:#999;font-size:14px;">
+                👆 请先选择上方的套餐，即可看到带金额的收款码
+            </div>
         </div>
     </div>
 
@@ -1039,28 +1052,33 @@
         }
 
         // ============ VIP套餐 ============
+        let currentPlans = []; // 保存当前套餐数据
+        let selectedPlanIndex = -1; // 当前选中的套餐索引
+
         async function loadVipPlans() {
             try {
                 const res = await fetch(`${apiUrl}/api/vip/plans`);
                 if (res.ok) {
                     const data = await res.json();
+                    currentPlans = data.plans;
                     renderVipPlans(data.plans);
                 }
             } catch(e) {}
             // 如果网络失败，用默认数据
             if (!document.getElementById('vipPlans').children.length) {
-                renderVipPlans([
+                currentPlans = [
                     { name: "7天VIP", price: 3.9, original_price: 9.9, days: 7, tag: "超值", features: ["无限次转换", "优先处理", "100MB文件限制"] },
                     { name: "月度VIP", price: 9.9, original_price: 29.9, days: 30, tag: "热门", features: ["无限次转换", "优先处理", "200MB文件限制", "专属客服"] },
                     { name: "年度VIP", price: 59.9, original_price: 118.8, days: 365, tag: "推荐", features: ["无限次转换", "最高优先", "500MB文件限制", "专属客服", "新功能优先体验"] }
-                ]);
+                ];
+                renderVipPlans(currentPlans);
             }
         }
 
         function renderVipPlans(plans) {
             const container = document.getElementById('vipPlans');
             container.innerHTML = plans.map((p, i) => `
-                <div class="vip-plan ${i === 1 ? 'hot' : ''}">
+                <div class="vip-plan ${i === 1 ? 'hot' : ''}" onclick="selectVipPlan(${i})" data-index="${i}">
                     ${p.tag ? `<div class="tag">${p.tag}</div>` : ''}
                     <div class="plan-name">${p.name}</div>
                     <div class="plan-price">¥${p.price}<small>/${p.days >= 365 ? '年' : p.days >= 30 ? '月' : '7天'}</small></div>
@@ -1069,6 +1087,42 @@
                 </div>
             `).join('');
         }
+
+        // 选择套餐后显示对应金额的收款码
+        function selectVipPlan(index) {
+            selectedPlanIndex = index;
+            const plan = currentPlans[index];
+            if (!plan) return;
+
+            // 更新套餐选中状态
+            document.querySelectorAll('#vipPlans .vip-plan').forEach((el, i) => {
+                el.classList.toggle('selected', i === index);
+            });
+
+            // 显示收款码区域
+            const qrCodeArea = document.getElementById('qrCodeArea');
+            const qrPlaceholder = document.getElementById('qrPlaceholder');
+            const qrPriceTag = document.getElementById('qrPriceTag');
+
+            // 价格标签
+            if (qrPriceTag) qrPriceTag.textContent = `¥${plan.price} · ${plan.name}`;
+
+            // 设置微信收款码图片
+            const priceKey = String(plan.price).replace('.', '_');
+            const wechatQr = document.getElementById('wechatQrImg');
+            if (wechatQr) {
+                wechatQr.src = `assets/wechat_${priceKey}.jpg`;
+                wechatQr.onerror = function() {
+                    this.style.background = '#f0f0f0';
+                    this.alt = '收款码加载失败，请联系客服';
+                };
+            }
+
+            // 切换显示
+            if (qrCodeArea) qrCodeArea.style.display = 'block';
+            if (qrPlaceholder) qrPlaceholder.style.display = 'none';
+        }
+
         loadVipPlans();
 
         function handleVipClick() {

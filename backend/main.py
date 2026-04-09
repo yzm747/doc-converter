@@ -529,11 +529,7 @@ async def word_to_pdf(file: UploadFile = File(...)):
                     y_position = height - margin
                 c.drawString(margin, y_position, current_line.strip())
                 y_position -= line_height
-        total_pages = c.getPageNumber()
-        for page_num in range(total_pages):
-            c.setPage(page_num)
-            c.setFont("Helvetica", 9)
-            c.drawRightString(width - margin, 30, f"Page {page_num + 1}")
+        c.save()
         c.save()
         try:
             docx_path.unlink()

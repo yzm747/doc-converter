@@ -1199,8 +1199,10 @@
 
             totalConversions++;
             localStorage.setItem('totalConversions', totalConversions);
-            document.getElementById('totalConversions').textContent = totalConversions;
-            document.getElementById('todayConversions').textContent = currentUser.daily_count || 0;
+            const totalEl = document.getElementById('totalConversions');
+            if (totalEl) totalEl.textContent = totalConversions;
+            const todayEl = document.getElementById('todayConversions');
+            if (todayEl) todayEl.textContent = currentUser ? (currentUser.daily_count || 0) : 0;
 
             addToHistory();
             setTimeout(() => {
